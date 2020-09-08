@@ -67,64 +67,59 @@
 				<a href="#confound" id="confound" style="color: inherit; text-decoration: none;">
 					<h1>Confound</h1>
 				</a>
+				<p><a href="https://app.circleci.com/pipelines/github/mtranter/Confound"><img src="https://circleci.com/gh/mtranter/Confound.svg?style=shield" alt="mtranter"></a></p>
 				<p>A typesafe, functional, configuration library for Typescript</p>
+				<p><a href="https://github.com/mtranter/Confound">https://github.com/mtranter/Confound</a></p>
+				<p>Install:</p>
+				<pre><code>npm <span class="hljs-keyword">install</span> confound</code></pre>
+				<p>or with Yarn:</p>
+				<pre><code class="language-sh">yarn add confound</code></pre>
 				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
 					<h2>Usage</h2>
 				</a>
-				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { ConfigValueSource, ConfigValueSources } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./confound&#x27;</span>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { ConfigValueSource, ConfigValueSources } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;confound&#x27;</span>
+<span class="hljs-keyword">const</span> { env, envOrDie } = ConfigValueSources
 
-<span class="hljs-keyword">interface</span> NestedConfig {
-  age: <span class="hljs-built_in">number</span>
+<span class="hljs-keyword">interface</span> AppConfig {
+  appName: <span class="hljs-built_in">string</span>,
+  commitId?: <span class="hljs-built_in">string</span>,
+  environment: <span class="hljs-built_in">string</span>,
+  database: {
+    host: <span class="hljs-built_in">string</span>,
+    port: <span class="hljs-built_in">number</span>
+  }
 }
 
-<span class="hljs-keyword">interface</span> MyConfig {
-  name: <span class="hljs-built_in">string</span>,
-  nested: NestedConfig
-}
-
-<span class="hljs-keyword">const</span> configSource: ConfigValueSource&lt;MyConfig&gt; =
-      ConfigValueSources.obj&lt;MyConfig&gt;({
-        name: <span class="hljs-string">&quot;Confound&quot;</span>,
-        nested: {
-          age: <span class="hljs-number">1</span>
-        }
-      })
-
-<span class="hljs-keyword">const</span> config: MyConfig = <span class="hljs-keyword">await</span> configSource()
-
-</code></pre>
-				<a href="#whats-the-point" id="whats-the-point" style="color: inherit; text-decoration: none;">
-					<h3>Whats the point?</h3>
-				</a>
-				<ul>
-					<li>Centralise Config definitions with standard error handling:</li>
-				</ul>
-				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { ConfigValueSource, ConfigValueSources } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./confound&#x27;</span>
-
-<span class="hljs-keyword">const</span> { envOrDie, obj } = ConfigValueSources
-
-process.env[<span class="hljs-string">&quot;CONFOUND_NAME&quot;</span>] = <span class="hljs-string">&quot;Confound&quot;</span>
-process.env[<span class="hljs-string">&quot;CONFOUND_AGE&quot;</span>] = <span class="hljs-string">&quot;1&quot;</span>
-
-<span class="hljs-keyword">const</span> configSource: ConfigValueSource&lt;MyConfig&gt; = obj&lt;MyConfig&gt;({
-  name: envOrDie(<span class="hljs-string">&quot;CONFOUND_NAME&quot;</span>),
-  nested: obj({
-    age: envOrDie(<span class="hljs-string">&quot;CONFOUND_AGE&quot;</span>).map(<span class="hljs-built_in">parseInt</span>)
-  })
+<span class="hljs-keyword">const</span> configLoader = ConfigValueSources.obj&lt;AppConfig&gt;({
+  appName: <span class="hljs-string">&quot;Confounded App&quot;</span>, <span class="hljs-comment">// Use Litral Config Value</span>
+  commitId: env(<span class="hljs-string">&quot;COMMIT_ID&quot;</span>), <span class="hljs-comment">// Extract optional config value from env variable</span>
+  environment: envOrDie(<span class="hljs-string">&quot;ENVIRONMENT&quot;</span>), <span class="hljs-comment">// Extract required value from env variable</span>
+  database: { 
+    host: envOrDie(<span class="hljs-string">&quot;DATABASE_HOST&quot;</span>),
+    port: envOrDie(<span class="hljs-string">&quot;DATABASE_PORT&quot;</span>).map(<span class="hljs-built_in">parseInt</span>) <span class="hljs-comment">// Map extracted config values to required types.</span>
+  }
 })
 
-<span class="hljs-keyword">const</span> config: MyConfig = <span class="hljs-keyword">await</span> configSource()</code></pre>
-				<a href="#why-return-a-promise" id="why-return-a-promise" style="color: inherit; text-decoration: none;">
-					<h3>Why return a Promise?</h3>
+<span class="hljs-keyword">const</span> config: AppConfig = <span class="hljs-keyword">await</span> configLoader()
+</code></pre>
+				<a href="#custom-config-sources" id="custom-config-sources" style="color: inherit; text-decoration: none;">
+					<h2>Custom config sources</h2>
 				</a>
-				<p>Confound allows extension by adding custom ConfigValueSources.
-				For example, using a custom AWS SSM config source:</p>
-				<pre><code class="language-typescript">
+				<p>Confound allows extension by adding custom ConfigValueSources.</p>
+				<p>For example, using a custom AWS SSM config source:</p>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> * <span class="hljs-keyword">as</span> AWS <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;aws-sdk&#x27;</span>
+
 <span class="hljs-keyword">const</span> ssm = <span class="hljs-keyword">new</span> AWS.SSM({ region: <span class="hljs-string">&quot;ap-southeast-2&quot;</span> })
 
-<span class="hljs-keyword">const</span> fromSSM = <span class="hljs-function">(<span class="hljs-params">name: <span class="hljs-built_in">string</span></span>) =&gt;</span> ConfigValueSources.of(<span class="hljs-function">() =&gt;</span> ssm.getParameter({ Name: name, WithDecryption: <span class="hljs-literal">true</span> }).promise().then(<span class="hljs-function"><span class="hljs-params">v</span> =&gt;</span> v.Parameter?.Value))
+<span class="hljs-keyword">const</span> fromSSM = <span class="hljs-function">(<span class="hljs-params">name: <span class="hljs-built_in">string</span></span>) =&gt;</span> 
+  ConfigValueSources
+    .of(<span class="hljs-function">() =&gt;</span> ssm.getParameter({ Name: name, WithDecryption: <span class="hljs-literal">true</span> })
+    .promise()
+    .then(<span class="hljs-function"><span class="hljs-params">v</span> =&gt;</span> v.Parameter?.Value))
 
-<span class="hljs-keyword">const</span> fromSSMOrDie = <span class="hljs-function">(<span class="hljs-params">name: <span class="hljs-built_in">string</span></span>) =&gt;</span> ConfigValueSources.orDie(fromSSM(name), <span class="hljs-string">`Cannot find SSM Paramter <span class="hljs-subst">${name}</span>`</span>)
+<span class="hljs-keyword">const</span> fromSSMOrDie = <span class="hljs-function">(<span class="hljs-params">name: <span class="hljs-built_in">string</span></span>) =&gt;</span> 
+  ConfigValueSources
+    .orDie(fromSSM(name), <span class="hljs-string">`Cannot find SSM Paramter <span class="hljs-subst">${name}</span>`</span>)
 
 <span class="hljs-keyword">interface</span> AppConfig {
   environment: <span class="hljs-built_in">string</span>,
@@ -145,7 +140,8 @@ process.env[<span class="hljs-string">&quot;CONFOUND_AGE&quot;</span>] = <span c
     password: envOrDie(<span class="hljs-string">&quot;DATABASE_PASSWORD_SSM_NAME&quot;</span>).flatMap(fromSSMOrDie)
   })
 })
-</code></pre>
+
+<span class="hljs-keyword">const</span> config: AppConfig = <span class="hljs-keyword">await</span> configLoader()</code></pre>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -163,6 +159,9 @@ process.env[<span class="hljs-string">&quot;CONFOUND_AGE&quot;</span>] = <span c
 					</li>
 					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
 						<a href="globals.html#configfetcher" class="tsd-kind-icon">Config<wbr>Fetcher</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#configfor" class="tsd-kind-icon">Config<wbr>For</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
 						<a href="globals.html#configvaluesource" class="tsd-kind-icon">Config<wbr>Value<wbr>Source</a>
