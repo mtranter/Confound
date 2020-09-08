@@ -82,6 +82,7 @@ describe("Confound", () => {
       })
     })
     const config = configSource()
-    await expect(config).rejects.toEqual("Expected env var CONFOUND_AGE")
+    await expect(config).rejects.toEqual("Config load error: Expected env var CONFOUND_AGE")
   })
 })
+

@@ -26,7 +26,7 @@ export const ConfigValueSources: ConfigValueSources = {
   lit: <T>(t: T | Promise<T>) => configValueSource(() => Promise.resolve(t)),
   env: (n: string) => configValueSource(() => Promise.resolve(process.env[n])),
   orDie: <T>(cvs: ConfigValueSource<T | undefined>, failureMsg: string) => cvs.map(s => s ? Promise.resolve(s) : Promise.reject<T>(failureMsg)),
-  envOrDie: (e: string) => ConfigValueSources.orDie(ConfigValueSources.env(e), `Expected env var ${e}`),
+  envOrDie: (e: string) => ConfigValueSources.orDie(ConfigValueSources.env(e), `Config load error: Expected env var ${e}`),
   obj: <T>(config: ConfigFor<T>) => {
     const configAny = config as { [k: string]: ConfigValueSource<any> }
     const getValue = (src: any) =>

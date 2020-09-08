@@ -10,7 +10,6 @@ Install:
 ```
 npm install confound
 ```
-
 or with Yarn:
 ```sh
 yarn add confound
@@ -20,64 +19,53 @@ yarn add confound
 ## Usage
 
 ```typescript
-import { ConfigValueSource, ConfigValueSources } from './confound'
+import { ConfigValueSource, ConfigValueSources } from 'confound'
+const { env, envOrDie } = ConfigValueSources
 
-interface NestedConfig {
-  age: number
+interface AppConfig {
+  appName: string,
+  commitId?: string,
+  environment: string,
+  database: {
+    host: string,
+    port: number
+  }
 }
 
-interface MyConfig {
-  name: string,
-  nested: NestedConfig
-}
-
-const configSource: ConfigValueSource<MyConfig> =
-      ConfigValueSources.obj<MyConfig>({
-        name: "Confound",
-        nested: {
-          age: 1
-        }
-      })
-
-const config: MyConfig = await configSource()
-
-
-```
-
-### Whats the point?
-
-* Centralise Config definitions with standard error handling:
-
-```typescript
-import { ConfigValueSource, ConfigValueSources } from './confound'
-
-const { envOrDie, obj } = ConfigValueSources
-
-process.env["CONFOUND_NAME"] = "Confound"
-process.env["CONFOUND_AGE"] = "1"
-
-const configSource: ConfigValueSource<MyConfig> = obj<MyConfig>({
-  name: envOrDie("CONFOUND_NAME"),
-  nested: obj({
-    age: envOrDie("CONFOUND_AGE").map(parseInt)
-  })
+const configLoader = ConfigValueSources.obj<AppConfig>({
+  appName: "Confounded App", // Use Litral Config Value
+  commitId: env("COMMIT_ID"), // Extract optional config value from env variable
+  environment: envOrDie("ENVIRONMENT"), // Extract required value from env variable
+  database: { 
+    host: envOrDie("DATABASE_HOST"),
+    port: envOrDie("DATABASE_PORT").map(parseInt) // Map extracted config values to required types.
+  }
 })
 
-const config: MyConfig = await configSource()
+const config: AppConfig = await configLoader()
+
 ```
 
-### Why return a Promise?
+## Custom config sources
 
 Confound allows extension by adding custom ConfigValueSources.
+
 For example, using a custom AWS SSM config source:
 
 ```typescript
+import * as AWS from 'aws-sdk'
 
 const ssm = new AWS.SSM({ region: "ap-southeast-2" })
 
-const fromSSM = (name: string) => ConfigValueSources.of(() => ssm.getParameter({ Name: name, WithDecryption: true }).promise().then(v => v.Parameter?.Value))
+const fromSSM = (name: string) => 
+  ConfigValueSources
+    .of(() => ssm.getParameter({ Name: name, WithDecryption: true })
+    .promise()
+    .then(v => v.Parameter?.Value))
 
-const fromSSMOrDie = (name: string) => ConfigValueSources.orDie(fromSSM(name), `Cannot find SSM Paramter ${name}`)
+const fromSSMOrDie = (name: string) => 
+  ConfigValueSources
+    .orDie(fromSSM(name), `Cannot find SSM Paramter ${name}`)
 
 interface AppConfig {
   environment: string,
@@ -99,4 +87,5 @@ const configLoader = ConfigValueSources.obj<AppConfig>({
   })
 })
 
+const config: AppConfig = await configLoader()
 ```
