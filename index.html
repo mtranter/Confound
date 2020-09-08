@@ -97,7 +97,7 @@
   environment: envOrDie(<span class="hljs-string">&quot;ENVIRONMENT&quot;</span>), <span class="hljs-comment">// Extract required value from env variable</span>
   database: { 
     host: envOrDie(<span class="hljs-string">&quot;DATABASE_HOST&quot;</span>),
-    port: envOrDie(<span class="hljs-string">&quot;DATABASE_PORT&quot;</span>).map(<span class="hljs-built_in">parseInt</span>) <span class="hljs-comment">// Map extracted config values to required types.</span>
+    port: envOr(<span class="hljs-string">&quot;DATABASE_PORT&quot;</span>, <span class="hljs-string">&quot;5432&quot;</span>).map(<span class="hljs-built_in">parseInt</span>) <span class="hljs-comment">// Map extracted config values to required types.</span>
   }
 })
 
