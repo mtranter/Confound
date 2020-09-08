@@ -1,6 +1,20 @@
 # Confound
 
+[![mtranter](https://circleci.com/gh/mtranter/Confound.svg?style=shield)](https://app.circleci.com/pipelines/github/mtranter/Confound)
+
 A typesafe, functional, configuration library for Typescript
+
+https://github.com/mtranter/Confound
+
+Install:
+```
+npm install confound
+```
+
+or with Yarn:
+```sh
+yarn add confound
+```
 
 
 ## Usage

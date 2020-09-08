@@ -1,4 +1,4 @@
-
+export type ConfigFor<T> = { [k in keyof T]: ConfigValueSource<T[k]> | T[k] | ConfigFor<T[k]> }
 
 export type ConfigFetcher<T> = () => Promise<T>
 
@@ -18,7 +18,7 @@ interface ConfigValueSources {
   env: (n: string) => ConfigValueSource<string | undefined>
   orDie: <T>(cvs: ConfigValueSource<T | undefined>, failureMsg: string) => ConfigValueSource<T>
   envOrDie: (e: string) => ConfigValueSource<string>
-  obj: <T>(config: { [k in keyof T]: ConfigValueSource<T[k]> | T[k] }) => ConfigValueSource<T>
+  obj: <T>(config: ConfigFor<T>) => ConfigValueSource<T>
 }
 
 export const ConfigValueSources: ConfigValueSources = {
@@ -27,9 +27,12 @@ export const ConfigValueSources: ConfigValueSources = {
   env: (n: string) => configValueSource(() => Promise.resolve(process.env[n])),
   orDie: <T>(cvs: ConfigValueSource<T | undefined>, failureMsg: string) => cvs.map(s => s ? Promise.resolve(s) : Promise.reject<T>(failureMsg)),
   envOrDie: (e: string) => ConfigValueSources.orDie(ConfigValueSources.env(e), `Expected env var ${e}`),
-  obj: <T>(config: { [k in keyof T]: ConfigValueSource<T[k]> | T[k] }) => {
+  obj: <T>(config: ConfigFor<T>) => {
     const configAny = config as { [k: string]: ConfigValueSource<any> }
-    const getValue = (src: any) => src instanceof Function ? src() : Promise.resolve(src)
+    const getValue = (src: any) =>
+      src instanceof Function ? src() :
+        (Object.getPrototypeOf(src) === Object.getPrototypeOf({})) ? ConfigValueSources.obj(src)() :
+          Promise.resolve(src)
     const fetchedP = Object.keys(config).reduce((p, n) => ([...p, getValue(configAny[n]).then((v: any) => ({ [n]: v }))]), [] as Array<Promise<any>>)
     const result = Promise.all(fetchedP).then(fetched => {
       return fetched.reduce((p, n) => Object.assign({}, p, n), {})

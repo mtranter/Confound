@@ -1,8 +1,9 @@
 import { ConfigValueSource, ConfigValueSources } from './confound'
 
-const { envOrDie, obj } = ConfigValueSources
+const { env, envOrDie, obj } = ConfigValueSources
 
 interface NestedConfig {
+  id?: string
   age: number
 }
 
@@ -47,6 +48,27 @@ describe("Confound", () => {
     expect(config).toEqual({
       name: "Confound",
       nested: {
+        age: 1
+      }
+    })
+  })
+  it("Should load Config from mixed config sources", async () => {
+    process.env["CONFOUND_NAME"] = "Confound"
+    process.env["CONFOUND_AGE"] = "1"
+    process.env["CONFOUND_ID"] = "abcde"
+
+    const configSource: ConfigValueSource<MyConfig> = obj<MyConfig>({
+      name: envOrDie("CONFOUND_NAME"),
+      nested: {
+        id: env("CONFOUND_ID"),
+        age: 1
+      }
+    })
+    const config = await configSource()
+    expect(config).toEqual({
+      name: "Confound",
+      nested: {
+        id: "abcde",
         age: 1
       }
     })
