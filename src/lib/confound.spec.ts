@@ -84,5 +84,33 @@ describe("Confound", () => {
     const config = configSource()
     await expect(config).rejects.toEqual("Config load error: Expected env var CONFOUND_AGE")
   })
+  it("Should handle literal array types", async () => {
+    interface ArrayConfig {
+      bootstrapServers: string[]
+    }
+    const configSource: ConfigValueSource<ArrayConfig> =
+      ConfigValueSources.obj<ArrayConfig>({
+        bootstrapServers: ["localhost:9092", "localhost:9092"],
+      })
+    const config: ArrayConfig = await configSource()
+    expect(config).toEqual({
+      bootstrapServers: ["localhost:9092", "localhost:9092"]
+    })
+  })
+  it("Should handle sources array types", async () => {
+    process.env["CONFOUND_BOOTSTRAP_SERVER_1"] = "localhost:9092"
+    process.env["CONFOUND_BOOTSTRAP_SERVER_2"] = "localhost:9093"
+    interface ArrayConfig {
+      bootstrapServers: string[]
+    }
+    const configSource: ConfigValueSource<ArrayConfig> =
+      ConfigValueSources.obj<ArrayConfig>({
+        bootstrapServers: [envOrDie("CONFOUND_BOOTSTRAP_SERVER_1"), envOrDie("CONFOUND_BOOTSTRAP_SERVER_2")],
+      })
+    const config: ArrayConfig = await configSource()
+    expect(config).toEqual({
+      bootstrapServers: ["localhost:9092", "localhost:9093"]
+    })
+  })
 })
 
