@@ -4,6 +4,8 @@
 
 A typesafe, functional, configuration library for Typescript
 
+Docs: https://mtranter.github.io/Confound/index.html
+
 https://github.com/mtranter/Confound
 
 Install:
