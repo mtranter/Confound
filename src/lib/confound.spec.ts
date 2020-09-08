@@ -1,6 +1,6 @@
 import { ConfigValueSource, ConfigValueSources } from './confound'
 
-const { env, envOrDie, obj } = ConfigValueSources
+const { env, envOr, envOrDie, obj } = ConfigValueSources
 
 interface NestedConfig {
   id?: string
@@ -105,11 +105,15 @@ describe("Confound", () => {
     }
     const configSource: ConfigValueSource<ArrayConfig> =
       ConfigValueSources.obj<ArrayConfig>({
-        bootstrapServers: [envOrDie("CONFOUND_BOOTSTRAP_SERVER_1"), envOrDie("CONFOUND_BOOTSTRAP_SERVER_2")],
+        bootstrapServers: [
+          envOrDie("CONFOUND_BOOTSTRAP_SERVER_1"),
+          envOrDie("CONFOUND_BOOTSTRAP_SERVER_2"),
+          envOr("CONFOUND_BOOTSTRAP_SERVER_3", "localhost:9094")
+        ],
       })
     const config: ArrayConfig = await configSource()
     expect(config).toEqual({
-      bootstrapServers: ["localhost:9092", "localhost:9093"]
+      bootstrapServers: ["localhost:9092", "localhost:9093", "localhost:9094"]
     })
   })
 })

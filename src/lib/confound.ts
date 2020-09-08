@@ -16,7 +16,9 @@ interface ConfigValueSources {
   of: <T>(cf: () => Promise<T>) => ConfigValueSource<T>
   lit: <T>(t: T | Promise<T>) => ConfigValueSource<T>
   env: (n: string) => ConfigValueSource<string | undefined>
+  or: <T>(cvs: ConfigValueSource<T | undefined>, defaultVal: T) => ConfigValueSource<T>
   orDie: <T>(cvs: ConfigValueSource<T | undefined>, failureMsg: string) => ConfigValueSource<T>
+  envOr: (e: string, defaultVal: string) => ConfigValueSource<string>
   envOrDie: (e: string) => ConfigValueSource<string>
   obj: <T>(config: ConfigFor<T>) => ConfigValueSource<T>
 }
@@ -25,7 +27,9 @@ export const ConfigValueSources: ConfigValueSources = {
   of: <T>(cf: () => Promise<T>) => configValueSource(cf),
   lit: <T>(t: T | Promise<T>) => configValueSource(() => Promise.resolve(t)),
   env: (n: string) => configValueSource(() => Promise.resolve(process.env[n])),
+  or: <T>(cvs: ConfigValueSource<T | undefined>, defaultVal: T) => cvs.map(s => s ? Promise.resolve(s) : Promise.resolve<T>(defaultVal)),
   orDie: <T>(cvs: ConfigValueSource<T | undefined>, failureMsg: string) => cvs.map(s => s ? Promise.resolve(s) : Promise.reject<T>(failureMsg)),
+  envOr: (e: string, defaultVal: string) => ConfigValueSources.or(ConfigValueSources.env(e), defaultVal),
   envOrDie: (e: string) => ConfigValueSources.orDie(ConfigValueSources.env(e), `Config load error: Expected env var ${e}`),
   obj: <T>(config: ConfigFor<T>) => {
     const configAny = config as { [k: string]: ConfigValueSource<any> }

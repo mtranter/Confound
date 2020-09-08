@@ -40,7 +40,7 @@ const configLoader = ConfigValueSources.obj<AppConfig>({
   environment: envOrDie("ENVIRONMENT"), // Extract required value from env variable
   database: { 
     host: envOrDie("DATABASE_HOST"),
-    port: envOrDie("DATABASE_PORT").map(parseInt) // Map extracted config values to required types.
+    port: envOr("DATABASE_PORT", "5432").map(parseInt) // Map extracted config values to required types.
   }
 })
 
