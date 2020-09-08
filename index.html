@@ -1,0 +1,197 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>confound</title>
+	<meta name="description" content="Documentation for confound">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">confound</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1>confound</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#confound" id="confound" style="color: inherit; text-decoration: none;">
+					<h1>Confound</h1>
+				</a>
+				<p>A typesafe, functional, configuration library for Typescript</p>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { ConfigValueSource, ConfigValueSources } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./confound&#x27;</span>
+
+<span class="hljs-keyword">interface</span> NestedConfig {
+  age: <span class="hljs-built_in">number</span>
+}
+
+<span class="hljs-keyword">interface</span> MyConfig {
+  name: <span class="hljs-built_in">string</span>,
+  nested: NestedConfig
+}
+
+<span class="hljs-keyword">const</span> configSource: ConfigValueSource&lt;MyConfig&gt; =
+      ConfigValueSources.obj&lt;MyConfig&gt;({
+        name: <span class="hljs-string">&quot;Confound&quot;</span>,
+        nested: {
+          age: <span class="hljs-number">1</span>
+        }
+      })
+
+<span class="hljs-keyword">const</span> config: MyConfig = <span class="hljs-keyword">await</span> configSource()
+
+</code></pre>
+				<a href="#whats-the-point" id="whats-the-point" style="color: inherit; text-decoration: none;">
+					<h3>Whats the point?</h3>
+				</a>
+				<ul>
+					<li>Centralise Config definitions with standard error handling:</li>
+				</ul>
+				<pre><code class="language-typescript"><span class="hljs-keyword">import</span> { ConfigValueSource, ConfigValueSources } <span class="hljs-keyword">from</span> <span class="hljs-string">&#x27;./confound&#x27;</span>
+
+<span class="hljs-keyword">const</span> { envOrDie, obj } = ConfigValueSources
+
+process.env[<span class="hljs-string">&quot;CONFOUND_NAME&quot;</span>] = <span class="hljs-string">&quot;Confound&quot;</span>
+process.env[<span class="hljs-string">&quot;CONFOUND_AGE&quot;</span>] = <span class="hljs-string">&quot;1&quot;</span>
+
+<span class="hljs-keyword">const</span> configSource: ConfigValueSource&lt;MyConfig&gt; = obj&lt;MyConfig&gt;({
+  name: envOrDie(<span class="hljs-string">&quot;CONFOUND_NAME&quot;</span>),
+  nested: obj({
+    age: envOrDie(<span class="hljs-string">&quot;CONFOUND_AGE&quot;</span>).map(<span class="hljs-built_in">parseInt</span>)
+  })
+})
+
+<span class="hljs-keyword">const</span> config: MyConfig = <span class="hljs-keyword">await</span> configSource()</code></pre>
+				<a href="#why-return-a-promise" id="why-return-a-promise" style="color: inherit; text-decoration: none;">
+					<h3>Why return a Promise?</h3>
+				</a>
+				<p>Confound allows extension by adding custom ConfigValueSources.
+				For example, using a custom AWS SSM config source:</p>
+				<pre><code class="language-typescript">
+<span class="hljs-keyword">const</span> ssm = <span class="hljs-keyword">new</span> AWS.SSM({ region: <span class="hljs-string">&quot;ap-southeast-2&quot;</span> })
+
+<span class="hljs-keyword">const</span> fromSSM = <span class="hljs-function">(<span class="hljs-params">name: <span class="hljs-built_in">string</span></span>) =&gt;</span> ConfigValueSources.of(<span class="hljs-function">() =&gt;</span> ssm.getParameter({ Name: name, WithDecryption: <span class="hljs-literal">true</span> }).promise().then(<span class="hljs-function"><span class="hljs-params">v</span> =&gt;</span> v.Parameter?.Value))
+
+<span class="hljs-keyword">const</span> fromSSMOrDie = <span class="hljs-function">(<span class="hljs-params">name: <span class="hljs-built_in">string</span></span>) =&gt;</span> ConfigValueSources.orDie(fromSSM(name), <span class="hljs-string">`Cannot find SSM Paramter <span class="hljs-subst">${name}</span>`</span>)
+
+<span class="hljs-keyword">interface</span> AppConfig {
+  environment: <span class="hljs-built_in">string</span>,
+  database: {
+    host: <span class="hljs-built_in">string</span>,
+    port: <span class="hljs-built_in">number</span>,
+    username: <span class="hljs-built_in">string</span>,
+    password: <span class="hljs-built_in">string</span>
+  }
+}
+
+<span class="hljs-keyword">const</span> configLoader = ConfigValueSources.obj&lt;AppConfig&gt;({
+  environment: envOrDie(<span class="hljs-string">&quot;ENVIRONMENT&quot;</span>),
+  database: obj({
+    host: envOrDie(<span class="hljs-string">&quot;DATABASE_HOST&quot;</span>),
+    port: envOrDie(<span class="hljs-string">&quot;DATABASE_PORT&quot;</span>).map(<span class="hljs-built_in">parseInt</span>),
+    username: envOrDie(<span class="hljs-string">&quot;DATABASE_USENAME_SSM_NAME&quot;</span>).flatMap(fromSSMOrDie),
+    password: envOrDie(<span class="hljs-string">&quot;DATABASE_PASSWORD_SSM_NAME&quot;</span>).flatMap(fromSSMOrDie)
+  })
+})
+</code></pre>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/configvaluesources.html" class="tsd-kind-icon">Config<wbr>Value<wbr>Sources</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#configfetcher" class="tsd-kind-icon">Config<wbr>Fetcher</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
+						<a href="globals.html#configvaluesource" class="tsd-kind-icon">Config<wbr>Value<wbr>Source</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter">
+						<a href="globals.html#configvaluesource" class="tsd-kind-icon">config<wbr>Value<wbr>Source</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#configvaluesources" class="tsd-kind-icon">Config<wbr>Value<wbr>Sources</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
