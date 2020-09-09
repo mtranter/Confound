@@ -81,12 +81,12 @@ interface AppConfig {
 
 const configLoader = ConfigValueSources.obj<AppConfig>({
   environment: envOrDie("ENVIRONMENT"),
-  database: obj({
+  database: {
     host: envOrDie("DATABASE_HOST"),
     port: envOrDie("DATABASE_PORT").map(parseInt),
     username: envOrDie("DATABASE_USENAME_SSM_NAME").flatMap(fromSSMOrDie),
     password: envOrDie("DATABASE_PASSWORD_SSM_NAME").flatMap(fromSSMOrDie)
-  })
+  }
 })
 
 const config: AppConfig = await configLoader()
