@@ -134,12 +134,12 @@
 
 <span class="hljs-keyword">const</span> configLoader = ConfigValueSources.obj&lt;AppConfig&gt;({
   environment: envOrDie(<span class="hljs-string">&quot;ENVIRONMENT&quot;</span>),
-  database: obj({
+  database: {
     host: envOrDie(<span class="hljs-string">&quot;DATABASE_HOST&quot;</span>),
     port: envOrDie(<span class="hljs-string">&quot;DATABASE_PORT&quot;</span>).map(<span class="hljs-built_in">parseInt</span>),
     username: envOrDie(<span class="hljs-string">&quot;DATABASE_USENAME_SSM_NAME&quot;</span>).flatMap(fromSSMOrDie),
     password: envOrDie(<span class="hljs-string">&quot;DATABASE_PASSWORD_SSM_NAME&quot;</span>).flatMap(fromSSMOrDie)
-  })
+  }
 })
 
 <span class="hljs-keyword">const</span> config: AppConfig = <span class="hljs-keyword">await</span> configLoader()</code></pre>
