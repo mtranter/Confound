@@ -52,6 +52,16 @@ describe("Confound", () => {
       }
     })
   })
+  it("Should load Config lazily", async () => {
+    let testVal = 0
+    const property = ConfigValueSources.of<string>(() => { testVal = 2; return Promise.resolve("1") }).map(s => parseInt(s))
+    const nested = ConfigValueSources.obj<{ property: number }>({
+      property: property
+    })
+    expect(testVal).toBe(0)
+    expect((await nested()).property).toBe(1)
+    expect(testVal).toBe(2)
+  })
   it("Should load Config from mixed config sources", async () => {
     process.env["CONFOUND_NAME"] = "Confound"
     process.env["CONFOUND_AGE"] = "1"

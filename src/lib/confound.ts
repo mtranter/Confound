@@ -38,12 +38,12 @@ export const ConfigValueSources: ConfigValueSources = {
         (Object.getPrototypeOf(src) === Object.getPrototypeOf({})) ? ConfigValueSources.obj(src)() :
           Array.isArray(src) ? Promise.all(src.map(getValue)) :
             Promise.resolve(src)
-    const fetchedP = Object.keys(config).reduce((p, n) => ([...p, getValue(configAny[n]).then((v: any) => ({ [n]: v }))]), [] as Array<Promise<any>>)
-    const result = Promise.all(fetchedP).then(fetched => {
-      return fetched.reduce((p, n) => Object.assign({}, p, n), {})
+    return ConfigValueSources.of(() => {
+      const fetchedP = Object.keys(config).reduce((p, n) => ([...p, getValue(configAny[n]).then((v: any) => ({ [n]: v }))]), [] as Array<Promise<any>>)
+      return Promise.all(fetchedP).then(fetched => {
+        return fetched.reduce((p, n) => Object.assign({}, p, n), {})
+      })
     })
-
-    return ConfigValueSources.lit(result as Promise<T>)
   }
 }
 
