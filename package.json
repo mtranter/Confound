@@ -1,6 +1,6 @@
 {
   "name": "confound",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A typesafe, functional, configuration library for Typescript",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
